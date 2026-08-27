@@ -55,12 +55,13 @@ Bastidas de Apurímac (UNAMBA).
 
 
 # ── Middleware CORS ─────────────────────────────────────────
-# Permite que el frontend React en Vercel consuma la API
+# Permite que el frontend en Railway, Vercel o local consuma la API sin bloqueos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
+    allow_origin_regex=r"https://.*\.up\.railway\.app|https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
