@@ -1,7 +1,7 @@
 // Servicio API para el panel de administración
 import axios from "axios"
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000"
+const BASE = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/+$/, "")
 
 const adminApi = axios.create({ baseURL: BASE, timeout: 120000 })
 
@@ -12,11 +12,11 @@ adminApi.interceptors.request.use((config) => {
   return config
 })
 
-// Interceptor: si el token expiró, redirige al login
+// Interceptor: si el token expiró en una ruta administrativa, redirige al login
 adminApi.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && err.config?.url?.includes("/admin/")) {
       localStorage.removeItem("admin_token")
       window.location.href = "/admin/login"
     }
@@ -52,7 +52,7 @@ export const solicitudService = {
 
   // Crear solicitud de actualización (público — sin token)
   crear: (personal_id, motivo) =>
-    axios.post(`${BASE}solicitudes`, { personal_id, motivo }),
+    axios.post(`${BASE}/solicitudes`, { personal_id, motivo }),
 
   // Admin: listar solicitudes
   listar: (estado) =>
