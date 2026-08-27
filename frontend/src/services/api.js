@@ -44,10 +44,19 @@ api.interceptors.response.use(
         ? "El servidor tardó demasiado. Intente nuevamente."
         : "Error de conexión con el servidor. Verifique su internet.")
 
+    const formatDetail = (d) => {
+      if (typeof d === "string") return d
+      if (d && typeof d === "object") {
+        const campo = Array.isArray(d.loc) ? d.loc.slice(1).join(" -> ") : ""
+        return campo ? `${campo}: ${d.msg}` : d.msg || JSON.stringify(d)
+      }
+      return String(d)
+    }
+
     return Promise.reject(new Error(
       Array.isArray(msg)
-        ? msg.map((e) => e.msg).join(", ")
-        : msg
+        ? msg.map(formatDetail).join("; ")
+        : (typeof msg === "object" ? formatDetail(msg) : msg)
     ))
   }
 )

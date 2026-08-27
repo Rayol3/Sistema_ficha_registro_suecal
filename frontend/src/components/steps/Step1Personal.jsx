@@ -11,6 +11,9 @@ import {
   SEXO, ESTADO_CIVIL, TIPO_VIVIENDA, GRUPO_SANGUINEO,
   SISTEMA_PENSION, AFP, RAMA_MILITAR, NIVEL_IDIOMA,
 } from "../../utils/constants"
+import {
+  UBIGEO_PERU, esPeru, getDepartamentos, getProvincias, getDistritos, PAISES_COMUNES,
+} from "../../utils/ubigeoPeru"
 
 export default function Step1Personal({
   datos, onChange,
@@ -324,19 +327,153 @@ export default function Step1Personal({
 
       {/* ══ 2. LUGAR DE NACIMIENTO ═════════════════════════ */}
       <div className="form-card">
-        <SectionTitle icono={Globe} titulo="Lugar de Nacimiento" />
+        <SectionTitle
+          icono={Globe}
+          titulo="Lugar de Nacimiento"
+          subtitulo={
+            esPeru(datos.nac_pais)
+              ? "Seleccione su departamento, provincia y distrito de nacimiento en Perú"
+              : "Ingrese su lugar de nacimiento en el extranjero"
+          }
+        />
         <FieldGrid cols={2}>
-          <Input label="País" required
-            value={datos.nac_pais ?? ""}
-            onChange={(e) => set("nac_pais", e.target.value)}
-            tocado={!!datos.nac_pais}
-            valido={!!datos.nac_pais} />
-          <Input label="Departamento" required
-            placeholder="Ej: Apurímac" {...campo("nac_departamento")} />
-          <Input label="Provincia" required
-            placeholder="Ej: Abancay" {...campo("nac_provincia")} />
-          <Input label="Distrito" required
-            placeholder="Ej: Abancay" {...campo("nac_distrito")} />
+          <div>
+            <Select
+              label="País"
+              required
+              opciones={PAISES_COMUNES}
+              value={
+                PAISES_COMUNES.some((p) => p.value === datos.nac_pais)
+                  ? (datos.nac_pais ?? "Perú")
+                  : "Otro"
+              }
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === "Otro") {
+                  set("nac_pais", "")
+                } else {
+                  set("nac_pais", val)
+                  if (val === "Perú") {
+                    set("nac_departamento", "")
+                    set("nac_provincia", "")
+                    set("nac_distrito", "")
+                  }
+                }
+              }}
+              tocado={!!datos.nac_pais}
+              valido={!!datos.nac_pais}
+            />
+            {/* Si no está en las opciones comunes predefinidas */}
+            {!PAISES_COMUNES.some((p) => p.value === datos.nac_pais && p.value !== "Otro") && (
+              <Input
+                className="mt-2"
+                placeholder="Escriba el nombre de su país"
+                value={datos.nac_pais ?? ""}
+                onChange={(e) => set("nac_pais", e.target.value)}
+                tocado={!!datos.nac_pais}
+                valido={!!datos.nac_pais}
+              />
+            )}
+          </div>
+
+          {esPeru(datos.nac_pais) ? (
+            <>
+              <Select
+                label="Departamento"
+                required
+                opciones={getDepartamentos()}
+                placeholder="Seleccione departamento..."
+                value={datos.nac_departamento ?? ""}
+                onChange={(e) => {
+                  const dep = e.target.value
+                  set("nac_departamento", dep)
+                  set("nac_provincia", "")
+                  set("nac_distrito", "")
+                  vProps("nac_departamento", datos.nac_departamento).onChange(e)
+                }}
+                tocado={!!datos.nac_departamento}
+                valido={!!datos.nac_departamento}
+                error={
+                  !datos.nac_departamento &&
+                  vProps("nac_departamento", datos.nac_departamento).tocado
+                    ? "El departamento es obligatorio"
+                    : ""
+                }
+              />
+              <Select
+                label="Provincia"
+                required
+                opciones={getProvincias(datos.nac_departamento)}
+                disabled={!datos.nac_departamento}
+                placeholder={
+                  datos.nac_departamento
+                    ? "Seleccione provincia..."
+                    : "Primero seleccione departamento"
+                }
+                value={datos.nac_provincia ?? ""}
+                onChange={(e) => {
+                  const prov = e.target.value
+                  set("nac_provincia", prov)
+                  set("nac_distrito", "")
+                  vProps("nac_provincia", datos.nac_provincia).onChange(e)
+                }}
+                tocado={!!datos.nac_provincia}
+                valido={!!datos.nac_provincia}
+                error={
+                  !datos.nac_provincia &&
+                  vProps("nac_provincia", datos.nac_provincia).tocado
+                    ? "La provincia es obligatoria"
+                    : ""
+                }
+              />
+              <Select
+                label="Distrito"
+                required
+                opciones={getDistritos(datos.nac_departamento, datos.nac_provincia)}
+                disabled={!datos.nac_provincia}
+                placeholder={
+                  datos.nac_provincia
+                    ? "Seleccione distrito..."
+                    : "Primero seleccione provincia"
+                }
+                value={datos.nac_distrito ?? ""}
+                onChange={(e) => {
+                  const dist = e.target.value
+                  set("nac_distrito", dist)
+                  vProps("nac_distrito", datos.nac_distrito).onChange(e)
+                }}
+                tocado={!!datos.nac_distrito}
+                valido={!!datos.nac_distrito}
+                error={
+                  !datos.nac_distrito &&
+                  vProps("nac_distrito", datos.nac_distrito).tocado
+                    ? "El distrito es obligatorio"
+                    : ""
+                }
+              />
+            </>
+          ) : (
+            <>
+              <Input
+                label="Departamento / Estado / Región"
+                required
+                placeholder="Ej: Buenos Aires"
+                {...campo("nac_departamento")}
+              />
+              <Input
+                label="Provincia / Ciudad"
+                required
+                placeholder="Ej: La Plata"
+                {...campo("nac_provincia")}
+              />
+              <Input
+                label="Distrito / Municipio"
+                required
+                placeholder="Ej: Tolosa"
+                {...campo("nac_distrito")}
+              />
+            </>
+          )}
         </FieldGrid>
       </div>
 

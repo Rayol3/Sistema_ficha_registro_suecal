@@ -5,6 +5,9 @@ import ModalFormulario from "../ui/ModalFormulario"
 import { SEXO, PARENTESCO } from "../../utils/constants"
 import { useValidacion } from "../../hooks/useValidacion"
 import { mostrarErroresPaso } from "../ui/ToastErrores"
+import {
+  esPeru, getDepartamentos, getProvincias, getDistritos, PAISES_COMUNES,
+} from "../../utils/ubigeoPeru"
 
 // ── Familiar vacío ─────────────────────────────────────────
 const FAMILIAR_VACIO = {
@@ -124,31 +127,136 @@ function FormFamiliar({ item, onChange }) {
           Lugar de Nacimiento
         </p>
         <FieldGrid cols={2}>
-          <Input label="País"
-            value={item.nac_pais ?? ""}
-            onChange={(e) => onChange("nac_pais", e.target.value)}
-            tocado={!!item.nac_pais} valido={!!item.nac_pais}
-          />
-          <Input label="Departamento" placeholder="Ej: Apurímac"
-            value={item.nac_departamento ?? ""}
-            onChange={(e) => onChange("nac_departamento", e.target.value)}
-            tocado={!!item.nac_departamento} valido={!!item.nac_departamento}
-          />
-          <Input label="Provincia" placeholder="Ej: Abancay"
-            value={item.nac_provincia ?? ""}
-            onChange={(e) => onChange("nac_provincia", e.target.value)}
-            tocado={!!item.nac_provincia} valido={!!item.nac_provincia}
-          />
-          <Input label="Distrito" placeholder="Ej: Abancay"
-            value={item.nac_distrito ?? ""}
-            onChange={(e) => onChange("nac_distrito", e.target.value)}
-            tocado={!!item.nac_distrito} valido={!!item.nac_distrito}
-          />
-          <Input label="Anexo / Centro Poblado" placeholder="Opcional"
-            value={item.nac_anexo ?? ""}
-            onChange={(e) => onChange("nac_anexo", e.target.value)}
-            tocado={!!item.nac_anexo} valido={!!item.nac_anexo}
-          />
+          <div>
+            <Select
+              label="País"
+              opciones={PAISES_COMUNES}
+              value={
+                PAISES_COMUNES.some((p) => p.value === item.nac_pais)
+                  ? (item.nac_pais ?? "Perú")
+                  : "Otro"
+              }
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === "Otro") {
+                  onChange("nac_pais", "")
+                } else {
+                  onChange("nac_pais", val)
+                  if (val === "Perú") {
+                    onChange("nac_departamento", "")
+                    onChange("nac_provincia", "")
+                    onChange("nac_distrito", "")
+                  }
+                }
+              }}
+              tocado={!!item.nac_pais}
+              valido={!!item.nac_pais}
+            />
+            {!PAISES_COMUNES.some((p) => p.value === item.nac_pais && p.value !== "Otro") && (
+              <Input
+                className="mt-2"
+                placeholder="Escriba el nombre del país"
+                value={item.nac_pais ?? ""}
+                onChange={(e) => onChange("nac_pais", e.target.value)}
+                tocado={!!item.nac_pais}
+                valido={!!item.nac_pais}
+              />
+            )}
+          </div>
+
+          {esPeru(item.nac_pais) ? (
+            <>
+              <Select
+                label="Departamento"
+                opciones={getDepartamentos()}
+                placeholder="Seleccione departamento..."
+                value={item.nac_departamento ?? ""}
+                onChange={(e) => {
+                  const dep = e.target.value
+                  onChange("nac_departamento", dep)
+                  onChange("nac_provincia", "")
+                  onChange("nac_distrito", "")
+                }}
+                tocado={!!item.nac_departamento}
+                valido={!!item.nac_departamento}
+              />
+              <Select
+                label="Provincia"
+                opciones={getProvincias(item.nac_departamento)}
+                disabled={!item.nac_departamento}
+                placeholder={
+                  item.nac_departamento
+                    ? "Seleccione provincia..."
+                    : "Primero seleccione departamento"
+                }
+                value={item.nac_provincia ?? ""}
+                onChange={(e) => {
+                  const prov = e.target.value
+                  onChange("nac_provincia", prov)
+                  onChange("nac_distrito", "")
+                }}
+                tocado={!!item.nac_provincia}
+                valido={!!item.nac_provincia}
+              />
+              <Select
+                label="Distrito"
+                opciones={getDistritos(item.nac_departamento, item.nac_provincia)}
+                disabled={!item.nac_provincia}
+                placeholder={
+                  item.nac_provincia
+                    ? "Seleccione distrito..."
+                    : "Primero seleccione provincia"
+                }
+                value={item.nac_distrito ?? ""}
+                onChange={(e) => onChange("nac_distrito", e.target.value)}
+                tocado={!!item.nac_distrito}
+                valido={!!item.nac_distrito}
+              />
+              <Input
+                label="Anexo / Centro Poblado"
+                placeholder="Opcional"
+                value={item.nac_anexo ?? ""}
+                onChange={(e) => onChange("nac_anexo", e.target.value)}
+                tocado={!!item.nac_anexo}
+                valido={!!item.nac_anexo}
+              />
+            </>
+          ) : (
+            <>
+              <Input
+                label="Departamento / Región"
+                placeholder="Ej: Buenos Aires"
+                value={item.nac_departamento ?? ""}
+                onChange={(e) => onChange("nac_departamento", e.target.value)}
+                tocado={!!item.nac_departamento}
+                valido={!!item.nac_departamento}
+              />
+              <Input
+                label="Provincia / Ciudad"
+                placeholder="Ej: La Plata"
+                value={item.nac_provincia ?? ""}
+                onChange={(e) => onChange("nac_provincia", e.target.value)}
+                tocado={!!item.nac_provincia}
+                valido={!!item.nac_provincia}
+              />
+              <Input
+                label="Distrito / Municipio"
+                placeholder="Ej: Tolosa"
+                value={item.nac_distrito ?? ""}
+                onChange={(e) => onChange("nac_distrito", e.target.value)}
+                tocado={!!item.nac_distrito}
+                valido={!!item.nac_distrito}
+              />
+              <Input
+                label="Anexo / Centro Poblado"
+                placeholder="Opcional"
+                value={item.nac_anexo ?? ""}
+                onChange={(e) => onChange("nac_anexo", e.target.value)}
+                tocado={!!item.nac_anexo}
+                valido={!!item.nac_anexo}
+              />
+            </>
+          )}
         </FieldGrid>
       </div>
     </div>

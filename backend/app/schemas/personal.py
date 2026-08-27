@@ -133,13 +133,24 @@ class PersonalBase(BaseModel):
     idiomas_nativos: List[IdiomaSchema] = []
     ofimatica: List[OfimaticaSchema] = []
 
+    # ── Sanitizador de cadenas vacías a None ───────────────
+    @model_validator(mode="before")
+    @classmethod
+    def sanitizar_cadenas_vacias(cls, data):
+        if isinstance(data, dict):
+            return {
+                k: (None if (isinstance(v, str) and v.strip() == "") else v)
+                for k, v in data.items()
+            }
+        return data
+
     # ── Validadores ────────────────────────────────────────
     @field_validator("dni")
     @classmethod
     def validar_dni(cls, v):
-        if not re.match(r"^\d{8}$", v):
+        if v is not None and not re.match(r"^\d{8}$", str(v).strip()):
             raise ValueError("El DNI debe tener exactamente 8 dígitos numéricos")
-        return v
+        return v.strip() if isinstance(v, str) else v
 
     @field_validator("ruc")
     @classmethod
@@ -261,6 +272,17 @@ class DatosLaboralesBase(BaseModel):
     renacyt_nivel: Optional[NivelRenacytEnum] = None
     renacyt_activo: bool = True
 
+    # ── Sanitizador de cadenas vacías a None ───────────────
+    @model_validator(mode="before")
+    @classmethod
+    def sanitizar_cadenas_vacias(cls, data):
+        if isinstance(data, dict):
+            return {
+                k: (None if (isinstance(v, str) and v.strip() == "") else v)
+                for k, v in data.items()
+            }
+        return data
+
     @field_validator("email_institucional")
     @classmethod
     def validar_email_institucional(cls, v):
@@ -342,12 +364,23 @@ class FamiliarBase(BaseModel):
     nac_anexo: Optional[str] = None
     vive_con_trabajador: bool = False
 
+    # ── Sanitizador de cadenas vacías a None ───────────────
+    @model_validator(mode="before")
+    @classmethod
+    def sanitizar_cadenas_vacias(cls, data):
+        if isinstance(data, dict):
+            return {
+                k: (None if (isinstance(v, str) and v.strip() == "") else v)
+                for k, v in data.items()
+            }
+        return data
+
     @field_validator("dni")
     @classmethod
     def validar_dni_familiar(cls, v):
-        if v is not None and not re.match(r"^\d{8}$", v):
+        if v is not None and not re.match(r"^\d{8}$", str(v).strip()):
             raise ValueError("El DNI del familiar debe tener 8 dígitos numéricos")
-        return v
+        return v.strip() if isinstance(v, str) else v
 
 
 class FamiliarCreate(FamiliarBase):

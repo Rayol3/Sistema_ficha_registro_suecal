@@ -232,92 +232,70 @@ export function useFicha() {
 
   // ── Preparar payload para el backend ─────────────────────
   const prepararPayload = useCallback(() => {
-    const limpiar     = (valor) => valor === "" ? null : valor
-    const limpiarFecha = (valor) => (!valor || valor === "") ? null : valor
-
-    const personal = { ...ficha.personal }
-    delete personal._foto_archivo
-
-    const camposOpcionalesPersonal = [
-      "libreta_militar", "telefono_fijo", "email_personal_2",
-      "dom_tipo_via", "dom_referencia", "tipo_vivienda", "tipo_vivienda_otro",
-      "ruc", "licencia_conducir", "afiliacion_essalud",
-      "grupo_sanguineo", "banco", "cuenta_numero", "cuenta_cci",
-      "denominacion_prof", "abreviatura_prof", "colegio_prof_nombre",
-      "colegio_prof_numero", "sistema_pension", "afp_nombre",
-      "conadis_registro", "serv_militar_rama", "serv_militar_cargo",
-      "codigo_afiliacion",
-    ]
-    camposOpcionalesPersonal.forEach((c) => {
-      personal[c] = limpiar(personal[c])
-    })
-
-    // Limpiar fechas específicamente
-    const fechasPersonal = [
-      "colegio_prof_fecha",
-      "serv_militar_fecha_inicio",
-      "serv_militar_fecha_fin",
-      "fecha_afiliacion",
-    ]
-    fechasPersonal.forEach((c) => {
-      personal[c] = limpiarFecha(personal[c])
-    })
-
-    const laboral = { ...ficha.datos_laborales }
-    const camposOpcionalesLaboral = [
-      "categoria_regimen", "regimen_dl276", "regimen_cas",
-      "regimen_ordinario", "regimen_contratado", "regimen_otros",
-      "nivel_remunerativo", "dedicacion",
-      "renacyt_codigo", "renacyt_nivel",
-    ]
-    camposOpcionalesLaboral.forEach((c) => {
-      laboral[c] = limpiar(laboral[c])
-    })
-
-    // Limpiar fecha de ingreso
-    laboral.fecha_ingreso = limpiarFecha(laboral.fecha_ingreso)
-
-    // Si no es RENACYT limpiar campos relacionados
-    if (!laboral.es_renacyt) {
-      laboral.renacyt_codigo = null
-      laboral.renacyt_nivel  = null
+    const limpiarProfundo = (obj) => {
+      if (obj === null || obj === undefined) return null
+      if (typeof obj === "string") return obj.trim() === "" ? null : obj.trim()
+      if (Array.isArray(obj)) return obj.map(limpiarProfundo)
+      if (typeof obj === "object" && !(obj instanceof File)) {
+        const res = {}
+        for (const [k, v] of Object.entries(obj)) {
+          if (k === "_foto_archivo") continue
+          res[k] = limpiarProfundo(v)
+        }
+        return res
+      }
+      return obj
     }
 
-    const otraInst = { ...ficha.otras_instituciones }
-    if (!otraInst.labora_otra_inst) {
-      otraInst.tipo_personal  = null
-      otraInst.nombre_entidad = null
-      otraInst.horas_diarias  = null
-    } else {
-      otraInst.tipo_personal = limpiar(otraInst.tipo_personal)
-      otraInst.horas_diarias = otraInst.horas_diarias || null
+    const payload = limpiarProfundo(ficha)
+
+    if (payload.personal) {
+      payload.personal.donador_organos = !!ficha.personal.donador_organos
+      payload.personal.tiene_discapacidad = !!ficha.personal.tiene_discapacidad
+      payload.personal.realizo_serv_militar = !!ficha.personal.realizo_serv_militar
+      payload.personal.idiomas_nativos = (ficha.personal.idiomas_nativos || [])
+        .filter((i) => i.idioma && i.nivel)
+        .map((i) => ({
+          idioma: i.idioma.trim(),
+          nivel: i.nivel.trim(),
+          documento_acredita: i.documento_acredita?.trim() || null,
+        }))
+      payload.personal.ofimatica = (ficha.personal.ofimatica || [])
+        .filter((o) => o.programa && o.nivel)
+        .map((o) => ({
+          programa: o.programa.trim(),
+          nivel: o.nivel.trim(),
+          documento_acredita: o.documento_acredita?.trim() || null,
+        }))
     }
 
-    // Limpiar fechas en listas
-    const limpiarFechasItem = (item) => {
-      const fechas = [
-        "fecha_inicio", "fecha_fin", "fecha_culminacion",
-        "fecha_conclusion", "fecha_emision", "fecha_documento",
-        "fecha_nacimiento", "colegio_prof_fecha",
-      ]
-      const limpio = { ...item }
-      fechas.forEach((f) => {
-        if (f in limpio) limpio[f] = limpiarFecha(limpio[f])
-      })
-      return limpio
+    if (payload.datos_laborales) {
+      payload.datos_laborales.es_renacyt = !!ficha.datos_laborales.es_renacyt
+      payload.datos_laborales.renacyt_activo = ficha.datos_laborales.renacyt_activo !== false
+      if (!payload.datos_laborales.es_renacyt) {
+        payload.datos_laborales.renacyt_codigo = null
+        payload.datos_laborales.renacyt_nivel = null
+      }
+      if (payload.datos_laborales.dedicacion !== "Horas") {
+        payload.datos_laborales.horas_semanales = null
+      }
     }
 
-    return {
-      personal,
-      datos_laborales:     laboral,
-      familiares:          ficha.familiares.map(limpiarFechasItem),
-      formacion_academica: ficha.formacion_academica.map(limpiarFechasItem),
-      otros_estudios:      ficha.otros_estudios.map(limpiarFechasItem),
-      experiencia_laboral: ficha.experiencia_laboral.map(limpiarFechasItem),
-      experiencia_docente: ficha.experiencia_docente.map(limpiarFechasItem),
-      otras_instituciones: otraInst,
-      reconocimientos:     ficha.reconocimientos.map(limpiarFechasItem),
+    if (payload.otras_instituciones) {
+      payload.otras_instituciones.labora_otra_inst = !!ficha.otras_instituciones.labora_otra_inst
+      if (!payload.otras_instituciones.labora_otra_inst) {
+        payload.otras_instituciones.tipo_personal = null
+        payload.otras_instituciones.nombre_entidad = null
+        payload.otras_instituciones.horas_diarias = null
+        payload.otras_instituciones.dia_lunes = false
+        payload.otras_instituciones.dia_martes = false
+        payload.otras_instituciones.dia_miercoles = false
+        payload.otras_instituciones.dia_jueves = false
+        payload.otras_instituciones.dia_viernes = false
+      }
     }
+
+    return payload
   }, [ficha])
 
   // ── Reset completo ────────────────────────────────────────

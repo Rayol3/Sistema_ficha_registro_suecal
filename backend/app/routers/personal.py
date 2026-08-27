@@ -38,8 +38,8 @@ from app.schemas.academico import (
     ReconocimientoResponse,
 )
 from typing import List, Optional
-from pydantic import BaseModel
 from datetime import datetime
+from pydantic import BaseModel, model_validator
 
 router = APIRouter(
     prefix="/api/personal",
@@ -47,8 +47,14 @@ router = APIRouter(
 )
 
 
-# ── Schema de registro completo ────────────────────────────
-# Recibe toda la ficha en una sola petición
+def _limpiar_recursivo(obj):
+    if isinstance(obj, dict):
+        return {k: _limpiar_recursivo(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_limpiar_recursivo(item) for item in obj]
+    elif isinstance(obj, str) and obj.strip() == "":
+        return None
+    return obj
 
 
 class FichaCompletaCreate(BaseModel):
@@ -61,6 +67,13 @@ class FichaCompletaCreate(BaseModel):
     experiencia_docente: List[ExperienciaDocenteCreate] = []
     otras_instituciones: Optional[OtrasInstitucionesCreate] = None
     reconocimientos: List[ReconocimientoCreate] = []
+
+    @model_validator(mode="before")
+    @classmethod
+    def limpiar_datos_entrada(cls, data):
+        if isinstance(data, dict):
+            return _limpiar_recursivo(data)
+        return data
 
 
 class FichaCompletaResponse(BaseModel):

@@ -10,10 +10,23 @@ from app.models.academico import (
     TipoInstitucionEnum,
 )
 
+# ── Clase base con sanitizador de strings vacíos a None ───
+class SanitizedBaseModel(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def sanitizar_cadenas_vacias(cls, data):
+        if isinstance(data, dict):
+            return {
+                k: (None if (isinstance(v, str) and v.strip() == "") else v)
+                for k, v in data.items()
+            }
+        return data
+
+
 # ── Schema: FormacionAcademica ─────────────────────────────
 
 
-class FormacionAcademicaBase(BaseModel):
+class FormacionAcademicaBase(SanitizedBaseModel):
     nivel: NivelEducativoEnum
     estado: EstadoEstudioEnum
     centro_estudios: Optional[str] = None
@@ -68,7 +81,7 @@ class FormacionAcademicaResponse(FormacionAcademicaBase):
 # ── Schema: OtrosEstudios ──────────────────────────────────
 
 
-class OtrosEstudiosBase(BaseModel):
+class OtrosEstudiosBase(SanitizedBaseModel):
     tipo: TipoOtroEstudioEnum
     nombre_curso: str
     centro_estudios: str
@@ -115,7 +128,7 @@ class OtrosEstudiosResponse(OtrosEstudiosBase):
 # ── Schema: ExperienciaLaboral ─────────────────────────────
 
 
-class ExperienciaLaboralBase(BaseModel):
+class ExperienciaLaboralBase(SanitizedBaseModel):
     tipo_institucion: TipoInstitucionEnum
     nombre_entidad: str
     cargo: str
@@ -164,7 +177,7 @@ class ExperienciaLaboralResponse(ExperienciaLaboralBase):
 # ── Schema: ExperienciaDocente ─────────────────────────────
 
 
-class ExperienciaDocenteBase(BaseModel):
+class ExperienciaDocenteBase(SanitizedBaseModel):
     nombre_entidad: str
     categoria: Optional[str] = None
     documento_acredita: Optional[str] = None
@@ -210,7 +223,7 @@ class ExperienciaDocenteResponse(ExperienciaDocenteBase):
 # ── Schema: OtrasInstituciones ─────────────────────────────
 
 
-class OtrasInstitucionesBase(BaseModel):
+class OtrasInstitucionesBase(SanitizedBaseModel):
     labora_otra_inst: bool = False
     tipo_personal: Optional[str] = None
     nombre_entidad: Optional[str] = None
@@ -257,7 +270,7 @@ class OtrasInstitucionesResponse(OtrasInstitucionesBase):
 # ── Schema: Reconocimiento ─────────────────────────────────
 
 
-class ReconocimientoBase(BaseModel):
+class ReconocimientoBase(SanitizedBaseModel):
     nombre_entidad: str
     tipo_reconocimiento: str
     documento_acredita: Optional[str] = None
