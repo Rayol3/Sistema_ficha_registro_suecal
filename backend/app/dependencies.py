@@ -13,9 +13,10 @@ def verificar_token(
     credenciales: HTTPAuthorizationCredentials = Depends(bearer),
 ) -> dict:
     try:
+        secret_key = settings.admin_secret_key or "unamba_jwt_secret_key_2025_suboficina_escalafon_secure"
         payload = jwt.decode(
             credenciales.credentials,
-            settings.admin_secret_key,
+            secret_key,
             algorithms=[ALGORITHM],
         )
         if payload.get("role") != "admin":
