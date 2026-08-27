@@ -4,6 +4,25 @@ Sistema integral para el registro, gestión y administración de fichas de escal
 
 ---
 
+## 🔑 Credenciales de Acceso Administrativo (Panel Admin)
+
+Para ingresar al panel de administración en `/admin` o `/admin/login`:
+
+| Campo | Valor |
+| :--- | :--- |
+| **Usuario:** | `admin` |
+| **Contraseña:** | `AdminUnamba2025!` |
+| **Ruta de Acceso:** | `http://localhost:5173/admin/login` |
+
+> [!IMPORTANT]
+> **Para Railway / Producción:** Debes configurar estas mismas variables en la pestaña **Variables** de tu servicio Backend en Railway:
+> - `ADMIN_USUARIO` = `admin`
+> - `ADMIN_CONTRASENA` = `AdminUnamba2025!`
+> - `ADMIN_SECRET_KEY` = `unamba_jwt_secret_key_2025_suboficina_escalafon_secure`
+> - `ADMIN_TOKEN_HOURS` = `8`
+
+---
+
 ## 📁 Estructura del Repositorio
 
 ```
@@ -19,6 +38,7 @@ Sistema_Fichas_Escalafon/
 │   ├── public/               # Recursos estáticos
 │   ├── package.json          # Dependencias y scripts de Node.js
 │   ├── tailwind.config.js    # Configuración de TailwindCSS
+│   ├── nixpacks.toml         # Configuración de build para Railway
 │   └── vite.config.js        # Configuración de Vite
 └── README.md                 # Documentación del proyecto
 ```
@@ -27,69 +47,53 @@ Sistema_Fichas_Escalafon/
 
 ## 🚀 Puesta en Marcha Local
 
-### 1. Backend (FastAPI + PostgreSQL)
+### 1. Base de Datos (PostgreSQL en Docker)
+Si usas el contenedor local Docker:
+* **Host:** `localhost`
+* **Puerto:** `5433`
+* **Base de Datos:** `ficha_registro_db`
+* **Usuario:** `postgres`
+* **Contraseña:** `123`
+
+### 2. Backend (FastAPI + PostgreSQL)
 
 1. Navegar a la carpeta `backend`:
    ```bash
    cd backend
    ```
 
-2. Crear y activar entorno virtual:
+2. Activar entorno virtual e instalar dependencias:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
-   ```
-
-3. Instalar dependencias:
-   ```bash
+   source venv/bin/activate
    pip install -r requirements.txt
    ```
 
-4. Configurar variables de entorno (`.env`):
-   ```env
-   DATABASE_URL=postgresql://usuario:password@localhost:5432/nombre_bd
-   CLOUDINARY_CLOUD_NAME=tu_cloud_name
-   CLOUDINARY_API_KEY=tu_api_key
-   CLOUDINARY_API_SECRET=tu_api_secret
-   ADMIN_USUARIO=admin
-   ADMIN_CONTRASENA=tu_password_seguro
-   ADMIN_SECRET_KEY=tu_jwt_secret_key
-   ADMIN_TOKEN_HOURS=8
-   ```
-
-5. Iniciar el servidor de desarrollo:
+3. Iniciar el servidor de desarrollo:
    ```bash
-   uvicorn app.main:app --reload --port 8000
+   ./venv/bin/uvicorn app.main:app --reload --port 8001
    ```
-   Documentación Swagger disponible en: `http://localhost:8000/docs`
+   * API URL: `http://localhost:8001`
+   * Swagger Docs: `http://localhost:8001/docs`
 
 ---
 
-### 2. Frontend (React + Vite)
+### 3. Frontend (React + Vite)
 
 1. Navegar a la carpeta `frontend`:
    ```bash
    cd frontend
    ```
 
-2. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-
-3. Configurar variables de entorno si es necesario (`.env.local`):
-   ```env
-   VITE_API_URL=http://localhost:8000
-   ```
-
-4. Iniciar servidor de desarrollo:
+2. Iniciar servidor de desarrollo:
    ```bash
    npm run dev
    ```
+   * App URL: `http://localhost:5173`
+   * Panel Admin: `http://localhost:5173/admin/login`
 
 ---
 
 ## 🛠️ Tecnologías Utilizadas
 
-- **Backend:** Python 3.11+, FastAPI, SQLAlchemy, PostgreSQL, Cloudinary, OpenPyXL.
+- **Backend:** Python 3.11+, FastAPI, SQLAlchemy, PostgreSQL, Cloudinary, OpenPyXL, Python-Jose (JWT).
 - **Frontend:** React 19, Vite, TailwindCSS, React Hook Form, Zod, Axios, Lucide Icons, @react-pdf/renderer.
