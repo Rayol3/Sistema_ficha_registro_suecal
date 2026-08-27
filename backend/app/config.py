@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # Admin — credenciales y JWT con valores por defecto seguros
     admin_usuario: str = "admin"
-    admin_contrasena: str = "AdminUnamba2025!"
+    admin_contrasena: str = "unamba2026!"
     admin_secret_key: str = "unamba_jwt_secret_key_2025_suboficina_escalafon_secure"
     admin_token_hours: int = 8
 

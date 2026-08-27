@@ -11,13 +11,13 @@ Para ingresar al panel de administración en `/admin` o `/admin/login`:
 | Campo | Valor |
 | :--- | :--- |
 | **Usuario:** | `admin` |
-| **Contraseña:** | `AdminUnamba2025!` |
+| **Contraseña:** | `unamba2026!` |
 | **Ruta de Acceso:** | `http://localhost:5173/admin/login` |
 
 > [!IMPORTANT]
 > **Para Railway / Producción:** Debes configurar estas mismas variables en la pestaña **Variables** de tu servicio Backend en Railway:
 > - `ADMIN_USUARIO` = `admin`
-> - `ADMIN_CONTRASENA` = `AdminUnamba2025!`
+> - `ADMIN_CONTRASENA` = `unamba2026!`
 > - `ADMIN_SECRET_KEY` = `unamba_jwt_secret_key_2025_suboficina_escalafon_secure`
 > - `ADMIN_TOKEN_HOURS` = `8`
 
