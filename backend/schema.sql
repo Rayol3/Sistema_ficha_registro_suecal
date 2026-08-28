@@ -8,7 +8,7 @@
 CREATE TYPE sexo_tipo AS ENUM ('Masculino', 'Femenino');
 
 CREATE TYPE estado_civil_tipo AS ENUM (
-  'Soltero', 'Casada', 'Viudo', 'Divorciado', 'Otro'
+  'Soltero', 'Casado', 'Casada', 'Viudo', 'Divorciado', 'Otro'
 );
 
 CREATE TYPE tipo_vivienda_tipo AS ENUM (
@@ -57,7 +57,7 @@ CREATE TYPE nivel_remunerativo_tipo AS ENUM (
 CREATE TYPE dedicacion_tipo AS ENUM ('DE', 'TC', 'TP', 'Horas');
 
 CREATE TYPE nivel_renacyt_tipo AS ENUM (
-  'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'
+  'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'Investigador Distinguido'
 );
 
 CREATE TYPE parentesco_tipo AS ENUM (

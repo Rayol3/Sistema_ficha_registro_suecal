@@ -27,7 +27,8 @@ class SexoEnum(str, enum.Enum):
 
 class EstadoCivilEnum(str, enum.Enum):
     soltero = "Soltero"
-    casado = "Casada"
+    casado = "Casado"
+    casada = "Casada"
     viudo = "Viudo"
     divorciado = "Divorciado"
     otro = "Otro"
